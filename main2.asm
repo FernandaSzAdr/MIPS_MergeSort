@@ -1,7 +1,9 @@
 .data
     
     vetor: .space 60
-    vetor_size: .word 15
+    Tam:	.asciiz "Tamanho do Vetor(1-15):"
+    Tam_Invalido: .asciiz "Tamanho Inválido\n"
+    Vetor_Print: .asciiz "Vetor Ordenado: "
     vetor_temp: .word 0:100
     Space:	.asciiz ", "
     
@@ -9,6 +11,29 @@
 
 #*************************************************** Leitura *********************************************************
 
+INICIO:
+
+la $s1, vetor
+la $a0, Tam
+li $v0, 4
+syscall
+
+li $v0, 5
+syscall
+
+move $t3, $v0	#Tamanho do vetor em $t3
+
+bgt $t3, 15, TAM_INVALIDO
+
+j CAPTURA
+
+TAM_INVALIDO:
+la $a0, Tam_Invalido
+li $v0, 4
+syscall
+j INICIO
+
+CAPTURA:
 la $s1, vetor        		# armazena o endereço do vetor de entrada em $s1			
 li $t0, 0        		# i = 0, interador que sera usado para percorrer o vetor
 
@@ -17,7 +42,7 @@ add $t2, $t1, $s1    		# $t2 = endreço de vetor[i]
 jal CAPTURA_VALOR    		# chama função para pegar valor, que sera armazenado em $v0
 sw $v0, 0($t2)       		# vetor[i] = $v0
 addi $t0, $t0, 1    		# i = i + 1
-bne $t0, 15, FOR_CAPTURA    	# enquanto i != 15 continue
+bne $t0, $t3, FOR_CAPTURA    	# enquanto i != 15 continue
 j MAIN
 
 CAPTURA_VALOR:
@@ -28,9 +53,11 @@ jr $ra
 MAIN:
 add $a0, $zero, $s1
 add $a1, $zero, $zero
-addi $a2, $zero, 14	#vetor_size - 1
+addi $a2, $t3, -1	#vetor_size - 1
 
 jal MERGESORT
+li $v0, 4
+syscall
 jal PRINT 
 li  $v0, 10
 syscall
@@ -163,6 +190,9 @@ PRINT:
 add $t0, $a1, $zero 	# $t0 = inicio
 add $t1, $a2, $zero	# $t1 = final
 la  $t4, vetor		# carrega o endereço de vetor
+la $a0, Vetor_Print
+li $v0, 4
+syscall
 	
 PRINT_FOR:
 blt  $t1, $t0, RETORNA	# se $t1 < $t0, vai para RETORNA
